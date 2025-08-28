@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Step 1: SEO Optimization & Metadata -->
+    <meta charset="UTF-8">
+    <title>Chicken - A Retro Arcade Game by Chris Pirillo</title>
+    <meta name="description" content="Play Chicken, a fun and challenging retro arcade game inspired by the Atari 2600 classic. Dodge traffic, cross the road, and test your reflexes. ">
+    <meta name="keywords" content="chicken, atari 2600, retro game, arcade game, classic game, cross the road, video game">
+    <meta name="author" content="Chris Pirillo">
+    <link rel="canonical" href="https://pirillo.com/arcade/chicken.html">
+
+    <!-- Core Web Vitals: Ensure proper rendering and scaling on all devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+
+    <!-- Open Graph (for social sharing on Facebook, etc.) -->
+    <meta property="og:title" content="Chicken - A Retro Arcade Game">
+    <meta property="og:description" content="Dodge traffic, cross the road, and test your reflexes in this retro arcade game.">
+    <meta property="og:image" content="https://pirillo.com/arcade/images/chicken.png">
+    <meta property="og:url" content="https://pirillo.com/arcade/chicken.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Pirillo Arcade">
+
+    <!-- Twitter Card (for social sharing on Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@ChrisPirillo">
+    <meta name="twitter:creator" content="@ChrisPirillo">
+    <meta name="twitter:title" content="Chicken - A Retro Arcade Game">
+    <meta name="twitter:description" content="Dodge traffic, cross the road, and test your reflexes in this retro arcade game.">
+    <meta name="twitter:image" content="https://pirillo.com/arcade/images/chicken.png">
+
+    <!-- Step 2: Frontend Performance Enhancements with Resource Hints -->
+    <!-- Preconnect to domains for critical resources to speed up initial connection -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+
+    <!-- Preload the critical font stylesheet to prevent render-blocking -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Fallback for browsers that don't support preload -->
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"></noscript>
+    
+    <!-- Tailwind CSS is critical for the initial layout and is not deferred -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Analytics - loaded asynchronously to not block rendering -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1CQ4D3VQ3L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1CQ4D3VQ3L');
+    </script>
+    
+    <!-- Step 1 (cont.): Structured Data (JSON-LD) for enhanced search results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Chicken",
+      "url": "https://pirillo.com/arcade/chicken.html",
+      "author": {
+        "@type": "Person",
+        "name": "Chris Pirillo"
+      },
+      "image": "https://pirillo.com/arcade/images/chicken.png",
+      "description": "A retro arcade game where the player must guide a chicken across a busy road, inspired by the Atari 2600 classic.",
+      "gamePlatform": "Web-based",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "playMode": "singlePlayer"
+    }
+    </script>
+
+    <!-- Step 3: Core Web Vitals - Inline Critical CSS -->
+    <!-- CSS is inlined to eliminate render-blocking stylesheet requests. -->
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            /* Font is preloaded and 'swap' minimizes FOUT/FOIT */
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000;
+            color: #fafafa;
+        }
+        .game-wrapper {
+            width: 100%;
+            height: 100%;
+        }
+        canvas {
+            background-color: #333333;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 4px solid #ffaa00;
+            text-align: center;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 1.2rem;
+            line-height: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-black">
+
+    <!-- Step 1: Semantic HTML - <main> tag for the primary content -->
+    <main class="game-wrapper">
+        <!-- The canvas is the main interactive element of the game -->
+        <canvas id="gameCanvas"></canvas>
+    </main>
+
+    <!-- The message box is an overlay for game state communication -->
+    <div id="messageBox" class="message-box hidden">
+        <div id="messageText"></div>
+        <button id="startButton" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-md transition duration-300 text-xl">
+            START GAME
+        </button>
+    </div>
+
+    <!-- JAVASCRIPT IS UNCHANGED AS PER REQUIREMENTS -->
+    <!-- The game script is placed at the end of the body to avoid blocking initial page render. -->
+    <script>
+        // --- Game Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const startButton = document.getElementById('startButton');
+
+        // Game dimensions will be set dynamically
+        let GAME_WIDTH, GAME_HEIGHT;
+        let LANE_HEIGHT, SAFE_ZONE_HEIGHT;
+
+        // --- Resizing ---
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            GAME_WIDTH = canvas.width;
+            GAME_HEIGHT = canvas.height;
+
+            // Make game elements scale with screen size
+            SAFE_ZONE_HEIGHT = Math.floor(GAME_HEIGHT * 0.08);
+            LANE_HEIGHT = Math.floor((GAME_HEIGHT - (SAFE_ZONE_HEIGHT * 2)) / 10);
+            player.speed = LANE_HEIGHT / 2;
+            player.width = LANE_HEIGHT * 0.5;
+            player.height = LANE_HEIGHT * 0.5;
+
+
+            if (!gameRunning) {
+                showStartMenu();
+            }
+        }
+
+        // --- Audio Context for Sound Effects ---
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+
+            if (type === 'score') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            } else if (type === 'crash') {
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(110, audioCtx.currentTime);
+            } else if (type === 'start') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+            }
+
+            oscillator.start(audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        }
+
+        // --- Game State ---
+        let score = 0;
+        let timeLeft = 300;
+        let gameRunning = false;
+        let timerInterval;
+
+        // --- Player (Chicken) ---
+        const player = {
+            width: 20,
+            height: 20,
+            x: 0,
+            y: 0,
+            color: '#ffff00',
+            speed: 20,
+            reset() {
+                this.x = GAME_WIDTH / 2 - this.width / 2;
+                // **FIX**: Ensure player is perfectly centered in the bottom safe zone
+                const safeZoneCenterY = GAME_HEIGHT - SAFE_ZONE_HEIGHT + (SAFE_ZONE_HEIGHT / 2);
+                this.y = safeZoneCenterY - (this.height / 2);
+            }
+        };
+
+        // --- Traffic Lanes ---
+        const lanes = [];
+        const laneColors = ['#5a5a5a', '#6a6a6a'];
+        const carColors = ['#ff0000', '#00ff00', '#0000ff', '#ff00ff', '#00ffff', '#ffffff'];
+        const numLanes = 10;
+
+        function initializeLanes() {
+            lanes.length = 0;
+            for (let i = 0; i < numLanes; i++) {
+                const direction = Math.random() < 0.5 ? 1 : -1; 
+                lanes.push({
+                    y: SAFE_ZONE_HEIGHT + i * LANE_HEIGHT,
+                    color: laneColors[i % 2],
+                    speed: (Math.random() * 0.001 + 0.0005) * GAME_WIDTH * direction, // Speed relative to width
+                    cars: []
+                });
+            }
+        }
+        
+        // --- Car Generation ---
+        function generateCars() {
+            lanes.forEach(lane => {
+                if (Math.random() < 0.025) {
+                    const lastCar = lane.cars[lane.cars.length - 1];
+                    let canAddCar = false;
+                    const spacing = GAME_WIDTH * 0.3; // Spacing relative to width
+
+                    if (!lastCar) {
+                        canAddCar = true;
+                    } else {
+                        if (lane.speed > 0) {
+                            if (lastCar.x > spacing) canAddCar = true;
+                        } else {
+                            if (lastCar.x + lastCar.width < GAME_WIDTH - spacing) canAddCar = true;
+                        }
+                    }
+
+                    if (canAddCar) {
+                        const carHeight = LANE_HEIGHT - 10;
+                        const car = {
+                            width: Math.floor(Math.random() * (GAME_WIDTH * 0.06)) + (GAME_WIDTH * 0.05),
+                            height: carHeight,
+                            x: lane.speed > 0 ? -100 : GAME_WIDTH + 100,
+                            // **FIX**: Ensure cars are perfectly centered in their lanes
+                            y: lane.y + (LANE_HEIGHT - carHeight) / 2,
+                            color: carColors[Math.floor(Math.random() * carColors.length)]
+                        };
+                        lane.cars.push(car);
+                    }
+                }
+            });
+        }
+
+        // --- Drawing Functions ---
+        function drawBackground() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            ctx.fillStyle = '#444444';
+            ctx.fillRect(0, 0, GAME_WIDTH, SAFE_ZONE_HEIGHT);
+            ctx.fillRect(0, GAME_HEIGHT - SAFE_ZONE_HEIGHT, GAME_WIDTH, SAFE_ZONE_HEIGHT);
+            lanes.forEach(lane => {
+                ctx.fillStyle = lane.color;
+                ctx.fillRect(0, lane.y, GAME_WIDTH, LANE_HEIGHT);
+            });
+        }
+        
+        function drawUI() {
+            const fontSize = Math.max(16, Math.floor(GAME_WIDTH / 40));
+            ctx.font = `${fontSize}px 'Press Start 2P'`;
+            // **FIX**: Set the text baseline to middle for accurate vertical alignment
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = "#ffff00";
+            ctx.textAlign = "center";
+            // **FIX**: Use the vertical center of the safe zone for the Y coordinate
+            ctx.fillText("CHICKEN", GAME_WIDTH / 2, SAFE_ZONE_HEIGHT / 2);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "left";
+            ctx.fillText(`SCORE: ${score}`, 30, SAFE_ZONE_HEIGHT / 2);
+            ctx.textAlign = "right";
+            ctx.fillText(`TIME: ${timeLeft}`, GAME_WIDTH - 30, SAFE_ZONE_HEIGHT / 2);
+        }
+
+        function drawPlayer() {
+            // **FIX**: Calculate the player's centered Y position for drawing
+            let currentLaneY;
+            if (player.y > GAME_HEIGHT - SAFE_ZONE_HEIGHT) { // In bottom safe zone
+                 currentLaneY = GAME_HEIGHT - SAFE_ZONE_HEIGHT;
+                 const centeredY = currentLaneY + (SAFE_ZONE_HEIGHT - player.height) / 2;
+                 ctx.fillStyle = player.color;
+                 ctx.fillRect(player.x, centeredY, player.width, player.height);
+                 return;
+            } else if (player.y < SAFE_ZONE_HEIGHT) { // In top safe zone (scoring)
+                 currentLaneY = 0;
+                 const centeredY = currentLaneY + (SAFE_ZONE_HEIGHT - player.height) / 2;
+                 ctx.fillStyle = player.color;
+                 ctx.fillRect(player.x, centeredY, player.width, player.height);
+                 return;
+            } else { // In a traffic lane
+                const laneIndex = Math.floor((player.y - SAFE_ZONE_HEIGHT) / LANE_HEIGHT);
+                if (lanes[laneIndex]) {
+                    currentLaneY = lanes[laneIndex].y;
+                    const centeredY = currentLaneY + (LANE_HEIGHT - player.height) / 2;
+                    ctx.fillStyle = player.color;
+                    ctx.fillRect(player.x, centeredY, player.width, player.height);
+                } else { // Fallback for edge cases
+                    ctx.fillStyle = player.color;
+                    ctx.fillRect(player.x, player.y, player.width, player.height);
+                }
+            }
+        }
+
+        function drawCars() {
+            lanes.forEach(lane => {
+                lane.cars.forEach(car => {
+                    ctx.fillStyle = car.color;
+                    ctx.fillRect(car.x, car.y, car.width, car.height);
+                });
+            });
+        }
+        
+        // --- Update Functions ---
+        function updateCars() {
+            lanes.forEach(lane => {
+                lane.cars.forEach(car => {
+                    car.x += lane.speed;
+                });
+                lane.cars = lane.cars.filter(car => car.x + car.width > -100 && car.x < GAME_WIDTH + 100);
+            });
+        }
+
+        // --- Main Game Loop ---
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            updateCars();
+            generateCars();
+            checkCollisions();
+            checkWinCondition();
+
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            drawBackground();
+            drawCars();
+            drawPlayer();
+            drawUI();
+
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function checkCollisions() {
+            for (const lane of lanes) {
+                for (const car of lane.cars) {
+                    if (
+                        player.x < car.x + car.width &&
+                        player.x + player.width > car.x &&
+                        player.y < car.y + car.height &&
+                        player.y + player.height > car.y
+                    ) {
+                        playSound('crash');
+                        player.reset();
+                        return;
+                    }
+                }
+            }
+        }
+
+        function checkWinCondition() {
+            if (player.y < SAFE_ZONE_HEIGHT) {
+                score++;
+                playSound('score');
+                player.reset();
+            }
+        }
+
+        // --- Game Control ---
+        function startGame() {
+            initAudio(); 
+            playSound('start');
+            score = 0;
+            timeLeft = 300;
+            gameRunning = true;
+            
+            initializeLanes();
+            player.reset();
+            
+            messageBox.classList.add('hidden');
+
+            clearInterval(timerInterval); 
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    endGame();
+                }
+            }, 1000);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            gameRunning = false;
+            clearInterval(timerInterval);
+            messageText.innerHTML = `TIME'S UP!<br>FINAL SCORE: ${score}`;
+            startButton.textContent = "PLAY AGAIN";
+            messageBox.classList.remove('hidden');
+        }
+        
+        function showStartMenu() {
+            messageText.innerHTML = "Get the chicken<br>across the road!<div style='font-size: 0.8em; line-height: 1.4em; margin-top: 1em;'>Use arrow keys or<br>swipe up/down to move.</div>";
+            startButton.textContent = "START GAME";
+            messageBox.classList.remove('hidden');
+            drawBackground();
+            player.reset();
+            drawPlayer();
+            drawUI();
+        }
+
+        // --- Event Listeners ---
+        function handleKeyDown(e) {
+            if (!gameRunning) return;
+            if (['ArrowUp', 'ArrowDown', 'w', 's'].includes(e.key)) e.preventDefault();
+            switch (e.key) {
+                case 'ArrowUp': case 'w':
+                    player.y -= LANE_HEIGHT;
+                    break;
+                case 'ArrowDown': case 's':
+                    if (player.y + LANE_HEIGHT < GAME_HEIGHT - SAFE_ZONE_HEIGHT) {
+                       player.y += LANE_HEIGHT;
+                    }
+                    break;
+            }
+        }
+        
+        let touchStartY = 0;
+        function handleTouchStart(e) {
+            if (!gameRunning) return;
+            e.preventDefault();
+            touchStartY = e.changedTouches[0].screenY;
+        }
+
+        function handleTouchEnd(e) {
+            if (!gameRunning) return;
+            e.preventDefault();
+            const touchEndY = e.changedTouches[0].screenY;
+            const swipeDistance = touchStartY - touchEndY;
+            const swipeThreshold = 30;
+
+            if (swipeDistance > swipeThreshold) {
+                player.y -= LANE_HEIGHT;
+            } else if (swipeDistance < -swipeThreshold) {
+                if (player.y + LANE_HEIGHT < GAME_HEIGHT - SAFE_ZONE_HEIGHT) {
+                   player.y += LANE_HEIGHT;
+                }
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+        startButton.addEventListener('click', startGame);
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- Initial Load ---
+        window.onload = async () => {
+            try {
+                await document.fonts.load("16px 'Press Start 2P'");
+            } catch (err) {
+                console.error('Font could not be loaded, using fallback:', err);
+            } finally {
+                resizeCanvas();
+            }
+        };
+    </script>
+</body>
+</html>
